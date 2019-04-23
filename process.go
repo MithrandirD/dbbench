@@ -159,9 +159,11 @@ func processResults(config *Config, resultChan <-chan *JobResult) map[string]*Jo
 			if resultFile != nil {
 				resultFile.Write([]string{
 					jr.Name,
+					strconv.FormatUint(jr.QueryId, 10),
 					strconv.FormatInt(jr.Start.Nanoseconds()/1000, 10),
 					strconv.FormatInt(jr.Elapsed.Nanoseconds()/1000, 10),
 					strconv.FormatInt(jr.RowsAffected, 10),
+					strconv.FormatInt(jr.ErrorCode, 10),
 				})
 			}
 			if _, ok := allTestStats[jr.Name]; !ok {

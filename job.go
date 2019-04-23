@@ -34,6 +34,7 @@ var continueOnError = flag.Bool("continue-on-error", false, "Continue query on e
 type queryInvocation struct {
 	query string
 	args  []interface{}
+	qid   uint64
 }
 
 type jobInvocation struct {
@@ -63,21 +64,29 @@ type JobResult struct {
 	Start        time.Duration
 	Elapsed      time.Duration
 	RowsAffected int64
+	QueryId      uint64
+	ErrorCode    int64
 }
 
 func (ji *jobInvocation) Invoke(db Database, results *SafeCSVWriter, start time.Duration) *JobResult {
 	invokeStart := time.Now()
+	queryId := uint64(0)
+	var errorCode int64
 	var rowsAffected int64
 
 	for _, qi := range ji.queries {
+		queryId = qi.qid
 		rows, err := db.RunQuery(results, qi.query, qi.args)
 		if err != nil {
+			errorCode = 1
 			// TODO(awreece) Avoid log.Fatal.
 			if *continueOnError {
 				log.Printf("error for query %s in %s: %v", qi.query, ji.name, err)
 			} else {
 				log.Fatalf("error for query %s in %s: %v", qi.query, ji.name, err)
 			}
+		} else {
+			errorCode = 0
 		}
 		rowsAffected += rows
 	}
@@ -85,7 +94,7 @@ func (ji *jobInvocation) Invoke(db Database, results *SafeCSVWriter, start time.
 	stop := time.Now()
 	elapsed := stop.Sub(invokeStart)
 
-	return &JobResult{ji.name, start, elapsed, rowsAffected}
+	return &JobResult{ji.name, start, elapsed, rowsAffected, queryId, errorCode}
 }
 
 func (ji *jobInvocation) String() string {
@@ -119,12 +128,12 @@ func (job *Job) getNextQueryArgs() ([]interface{}, error) {
 
 func (job *Job) getNextJobInvocation() (*jobInvocation, error) {
 	queryInvocations := make([]queryInvocation, 0, len(job.Queries))
-	for _, query := range job.Queries {
+	for index, query := range job.Queries {
 		args, err := job.getNextQueryArgs()
 		if err != nil {
 			return nil, err
 		}
-		queryInvocations = append(queryInvocations, queryInvocation{query, args})
+		queryInvocations = append(queryInvocations, queryInvocation{query, args, uint64(index)})
 	}
 	return &jobInvocation{job.Name, queryInvocations}, nil
 }
@@ -186,7 +195,7 @@ func (job *Job) startLogQueryChannel(ctx context.Context) <-chan *jobInvocation 
 					return
 				case <-time.NewTimer(timeToSleep).C:
 					// TODO(awreece) Support multi statement log files.
-					ch <- &jobInvocation{job.Name, []queryInvocation{{parts[1], nil}}}
+					ch <- &jobInvocation{job.Name, []queryInvocation{{parts[1], nil, linesScanned}}}
 				}
 			}
 		}
