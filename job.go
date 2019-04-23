@@ -19,6 +19,7 @@ package main
 import (
 	"bufio"
 	"encoding/csv"
+	"flag"
 	"golang.org/x/net/context"
 	"io"
 	"log"
@@ -27,6 +28,8 @@ import (
 	"sync"
 	"time"
 )
+
+var continueOnError = flag.Bool("continue-on-error", false, "Continue query on error")
 
 type queryInvocation struct {
 	query string
@@ -70,7 +73,11 @@ func (ji *jobInvocation) Invoke(db Database, results *SafeCSVWriter, start time.
 		rows, err := db.RunQuery(results, qi.query, qi.args)
 		if err != nil {
 			// TODO(awreece) Avoid log.Fatal.
-			log.Fatalf("error for query %s in %s: %v", qi.query, ji.name, err)
+			if *continueOnError {
+				log.Printf("error for query %s in %s: %v", qi.query, ji.name, err)
+			} else {
+				log.Fatalf("error for query %s in %s: %v", qi.query, ji.name, err)
+			}
 		}
 		rowsAffected += rows
 	}
