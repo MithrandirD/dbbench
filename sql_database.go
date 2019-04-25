@@ -98,6 +98,8 @@ func (s *sqlDb) countQueryRows(w *SafeCSVWriter, q string, args []interface{}) (
 		if ro, err = makeRowOutputter(w, rows); err != nil {
 			return 0, err
 		}
+		w.wlock.Lock()
+		defer w.wlock.Unlock()
 	}
 
 	for rows.Next() {

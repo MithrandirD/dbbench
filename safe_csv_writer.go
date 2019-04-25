@@ -27,6 +27,7 @@ type SafeCSVWriter struct {
 	m         sync.Mutex
 	csvWriter *csv.Writer
 	ioCloser  io.Closer
+	wlock     sync.Mutex
 }
 
 func (scw *SafeCSVWriter) Close() {
