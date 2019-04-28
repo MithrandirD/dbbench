@@ -76,6 +76,8 @@ func runTest(db Database, config *Config) {
 var driverName = flag.String("driver", "mysql", "Database driver to use.")
 var baseDir = flag.String("base-dir", "",
 	"Directory to use as base for files (default directory containing runfile).")
+var queryResultsFile = flag.String("query-results-file", "",
+	"File to save query results.")
 
 var printVersion = flag.Bool("version", false, "Print the version and quit")
 
@@ -129,6 +131,19 @@ func main() {
 	config, err := parseConfig(flavor, configFile, *baseDir)
 	if err != nil {
 		log.Fatalf("parsing config file %v", err)
+	}
+	if *queryResultsFile != "" {
+		queryResults, err := NewSafeCSVWriter(*queryResultsFile)
+		if err != nil {
+			log.Fatalf("Fail to create results file %s", *queryResultsFile)
+		}
+		for name, job := range config.Jobs {
+			if job.QueryResults != nil {
+				job.QueryResults.Close()
+			}
+			job.QueryResults = queryResults
+			log.Printf("Save job %s results to file %s", name, *queryResultsFile)
+		}
 	}
 
 	if db, err := flavor.Connect(&GlobalConfig); err != nil {
