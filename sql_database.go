@@ -32,7 +32,7 @@ type sqlDb struct {
 func (s *sqlDb) RunQuery(w *SafeCSVWriter, q string, args []interface{}) (int64, error) {
 
 	switch action := strings.ToLower(strings.Fields(q)[0]); action {
-	case "select", "show", "explain", "describe", "desc":
+	case "select", "show", "explain", "describe", "desc", "option":
 		return s.countQueryRows(w, q, args)
 	case "use", "begin":
 		return 0, fmt.Errorf("invalid query action: %v", action)
