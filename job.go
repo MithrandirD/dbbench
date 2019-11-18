@@ -18,9 +18,13 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"encoding/csv"
 	"flag"
+<<<<<<< HEAD
 	"golang.org/x/net/context"
+=======
+>>>>>>> Integrated Add continue-on-error flag patch
 	"io"
 	"log"
 	"strconv"
@@ -85,8 +89,11 @@ func (ji *jobInvocation) Invoke(db Database, results *SafeCSVWriter, start time.
 			} else {
 				log.Fatalf("error for query %s in %s: %v", qi.query, ji.name, err)
 			}
+<<<<<<< HEAD
 		} else {
 			errorCode = 0
+=======
+>>>>>>> Integrated Add continue-on-error flag patch
 		}
 		rowsAffected += rows
 	}
