@@ -21,10 +21,6 @@ import (
 	"context"
 	"encoding/csv"
 	"flag"
-<<<<<<< HEAD
-	"golang.org/x/net/context"
-=======
->>>>>>> Integrated Add continue-on-error flag patch
 	"io"
 	"log"
 	"strconv"
@@ -83,17 +79,13 @@ func (ji *jobInvocation) Invoke(db Database, results *SafeCSVWriter, start time.
 		rows, err := db.RunQuery(results, qi.query, qi.args)
 		if err != nil {
 			errorCode = 1
-			// TODO(awreece) Avoid log.Fatal.
 			if *continueOnError {
 				log.Printf("error for query %s in %s: %v", qi.query, ji.name, err)
 			} else {
 				log.Fatalf("error for query %s in %s: %v", qi.query, ji.name, err)
 			}
-<<<<<<< HEAD
 		} else {
 			errorCode = 0
-=======
->>>>>>> Integrated Add continue-on-error flag patch
 		}
 		rowsAffected += rows
 	}
