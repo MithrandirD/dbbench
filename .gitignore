@@ -1,3 +1,8 @@
 dbbench
 .idea
 .vscode
+*~
+*.orig
+*.tmp
+.*.sw?
+local/
